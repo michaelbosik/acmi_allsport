@@ -1,0 +1,38 @@
+[
+  {
+    "id": "topleftbox",
+    "title": "Box - Top Left",
+    "style": "Box",
+    "position": {
+        "x": -38.0,
+        "y": -40.5
+    }
+  },
+  {
+    "id": "bottomrightbox",
+    "title": "Box - Bottom Right",
+    "style": "Box",
+    "position": {
+        "x": 37.5,
+        "y": 37.5
+    }
+  },
+  {
+    "id": "topleftline",
+    "title": "Line - Top Left",
+    "style": "Line",
+    "position": {
+        "x": -23.0,
+        "y": -43.0
+    }
+  },
+  {
+    "id": "bottommiddleline",
+    "title": "Line - Bottom Middle",
+    "style": "Line",
+    "position": {
+        "x": 0.0,
+        "y": 40.0
+    }
+  }
+]

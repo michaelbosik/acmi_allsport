@@ -1,0 +1,140 @@
+[
+  {
+    "id": "Arlington Catholic",
+    "title": "Arlington Catholic",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/5gkfS9Td6I5lJKWnT4Ifl9_w1500h1000.png",
+    "abreviation": "ACH"
+  },
+  {
+    "id": "Belmont",
+    "title": "Belmont",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/4M0A2E4v4M4UPd2JNlCpj2_w1500h1000.png",
+    "abreviation": "BHS"
+  },
+  {
+    "id": "Braintree",
+    "title": "Braintree",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/3WetFNCfO7in6YrwGAqggm_w1000h1000.png",
+    "abreviation": "BHS"
+  },
+  {
+    "id": "Brockton",
+    "title": "Brockton",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/64punD7svLCrKfgB46TMVu_w1500h1000.png",
+    "abreviation": "BHS"
+  },
+  {
+    "id": "Burlington",
+    "title": "Burlington",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/3pJyswrJbVaivOUrUaW6J7_w1500h1000.png",
+    "abreviation": "BHS"
+  },
+  {
+    "id": "Catholic Memorial",
+    "title": "Catholic Memorial",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/41j6NiTTz0CtCwJShKGuBo_w1000h1000.png",
+    "abreviation": "CMH"
+  },
+  {
+    "id": "Gloucester",
+    "title": "Gloucester",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/72RRhhSyB9sEPYTvzsLneP_w1000h1000.png",
+    "abreviation": "GHS"
+  },
+  {
+    "id": "Lexington",
+    "title": "Lexington",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/12wn6TbGg0JcFjgDWDZjez_w1500h1000.png",
+    "abreviation": "LHS"
+  },
+  {
+    "id": "Melrose",
+    "title": "Melrose",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/0DLOp83T8KcFblbxJ5gnlY_w1500h1000.png",
+    "abreviation": "MHS"
+  },
+  {
+    "id": "Methuen",
+    "title": "Methuen",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/0jjHKgfbZ9bfUNi0WxYtak_w1500h1000.png",
+    "abreviation": "MHS"
+  },
+  {
+    "id": "Newton North",
+    "title": "Newton North",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/1YaUpzJXLzxZhcC86dZMpX_w1000h1000.png",
+    "abreviation": "NNH"
+  },
+  {
+    "id": "Newton South",
+    "title": "Newton South",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/62dlPhOz73vqlRROXHnFMS_w1500h1000.png",
+    "abreviation": "NSH"
+  },
+  {
+    "id": "North Andover",
+    "title": "North Andover",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/1kFE30s3appbFVcKcjAJvF_w1500h1000.png",
+    "abreviation": "NAH"
+  },
+  {
+    "id": "Pope Francis Prep",
+    "title": "Pope Francis Prep",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/3yGvwgI1kNkA4C8pXgh50T_w1500h1000.png",
+    "abreviation": "PFP"
+  },
+  {
+    "id": "Reading",
+    "title": "Reading",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/7t0C54CjopkuCRqilkSEIl_w1500h1000.png",
+    "abreviation": "RHS"
+  },
+  {
+    "id": "Stoneham",
+    "title": "Stoneham",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/2gopeUtdvPY2ibthAereXA_w1000h1000.png",
+    "abreviation": "SHS"
+  },
+  {
+    "id": "Wakefield",
+    "title": "Wakefield",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/3Xxi3IhsyydVXuf4MZoyd4_w1000h1000.png",
+    "abreviation": "WHS"
+  },
+  {
+    "id": "Waltham",
+    "title": "Waltham",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/3oteA2GxZLkgaKfUgZyH25_w1500h1000.png",
+    "abreviation": "WHS"
+  },
+  {
+    "id": "Watertown",
+    "title": "Watertown",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/3Zk37D2cE07xteW7jZRnq9_w1000h1000.png",
+    "abreviation": "WTH"
+  },
+  {
+    "id": "Wellesley",
+    "title": "Wellesley",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/34fIn02bItNu8173WwzavE_w1500h1000.png",
+    "abreviation": "WHS"
+  },
+  {
+    "id": "Wilmington",
+    "title": "Wilmington",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/2TsY2sytJpRkOngG1jFGGw_w1000h1000.png",
+    "abreviation": "WHS"
+  },
+  {
+    "id": "Winchester",
+    "title": "Winchester",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/2cgPWULqHlDvmtr1Ydv9ce_w1500h1000.png",
+    "abreviation": "WHS"
+  },
+  {
+    "id": "Woburn",
+    "title": "Woburn",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/4XnzkayE0hajEJbO0YppjK_w1500h1000.png",
+    "abreviation": "WHS"
+  }
+]
