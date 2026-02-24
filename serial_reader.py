@@ -14,8 +14,8 @@ import time
 # For macOS, it is usually /dev/tty.usbserial-XXXX or /dev/tty.usbmodemXXXX.
 # You can use `ls /dev/tty.*` in the terminal to find the correct port.
 
-SERIAL_PORT = '/dev/ttyUSB0'
-# SERIAL_PORT = '/dev/tty.usbserial-A506ILVC'
+# SERIAL_PORT = '/dev/ttyUSB0'
+SERIAL_PORT = '/dev/tty.usbserial-11210'
 
 BAUD_RATE = 9600
 TIMEOUT = 0

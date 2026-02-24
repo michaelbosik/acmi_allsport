@@ -136,6 +136,11 @@
         });
         SCOREBUG.findWidget('AwayName').forEach(e => {
           e.setPayload({
+            'text': away_team['title']
+          });
+        });
+        SCOREBUG.findWidget('AwayAbbr').forEach(e => {
+          e.setPayload({
             'text': away_team['abbreviation']
           });
         });

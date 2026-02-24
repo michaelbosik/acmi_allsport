@@ -6,6 +6,7 @@
 
 import subprocess
 import re
+from xxlimited import new
 import paramiko
 import socket
 import time
@@ -19,7 +20,7 @@ PASSWORD = "acmi"
 # REMOTE_SCRIPT = "/home/acmi/Desktop/serial_reader.py"
 
 # When testing locally, set REMOTE_SCRIPT to the path of serial_reader.py on your local machine.
-REMOTE_SCRIPT = "~/Desktop/serial_reader.py"
+REMOTE_SCRIPT = "./serial_reader.py"
 
 DATA_STREAM_URL = "https://datastream.singular.live/datastreams/"
 DATA_STREAM_PRIVATE_TOKEN = "7mEnVZu4rHlnUVJW2la78d"
@@ -97,7 +98,7 @@ def pretty_print_score(score_data: dict, selected_sport: str):
 # Function to parse a line of serial data based on the expected format for the selected sport and update the scoreData dictionary accordingly
 def parse_line(selected_sport, line, scoreData):
 
-    print(f"Raw line: '{line}'")
+    # print(f"Raw line: '{line}'")
 
     line = line.strip("b'").strip("'")
     line = re.sub(r"[\x00-\x1F\x7F]", "", line)
@@ -105,27 +106,27 @@ def parse_line(selected_sport, line, scoreData):
 
     indexes = PARSING_INDEXES[selected_sport]
 
+    parsed_data = {}
+
     if len(line) < 26:
-        print(f"Line length: {len(line)}. Expected at least {max(end for _, end in indexes.values())} characters.")
+        # print(f"Line length: {len(line)}. Expected at least {max(end for _, end in indexes.values())} characters.")
         return scoreData
 
     try:
         for field, (start, end) in indexes.items():
             raw_value = line[start:end].strip()
-            print(f"Extracted raw value for {field}: '{raw_value}'")
+            # print(f"Extracted raw value for {field}: '{raw_value}'")
 
             if field == "timer_stopped":
-                scoreData[field] = (raw_value == "s")
+                parsed_data[field] = (raw_value == "s")
             elif raw_value:
-                scoreData[field] = int(raw_value)
+                parsed_data[field] = int(raw_value)
             else:
-                scoreData[field] = 0
+                parsed_data[field] = 0
     except Exception as e:  
         print(f"Error parsing line: {e}. Line content: '{line}'")
 
-    pretty_print_score(scoreData, selected_sport)
-
-    return scoreData
+    return parsed_data
 
 # Function to scan the local network for devices with specified MAC address prefixes and return their IP addresses
 def get_ip_from_mac(mac_prefixes):
@@ -225,9 +226,15 @@ def stream_remote_script(client, selected_sport):
             if channel.recv_ready():
                 chunk = channel.recv(1024).decode("utf-8", errors="ignore")
                 parsed_data = parse_line(selected_sport, chunk, scoreData)
-                if parsed_data != scoreData:
-                    scoreData = parsed_data
+                update_needed = False
+                for k, v in parsed_data.items():
+                    if scoreData.get(k) != v:
+                        scoreData[k] = v
+                        update_needed = True
+                if update_needed:
+                    pretty_print_score(scoreData, selected_sport)
                     send_to_singular(parsed_data)
+
 
             if channel.recv_stderr_ready():
                 error = channel.recv_stderr(1024).decode("utf-8", errors="ignore")
@@ -268,11 +275,7 @@ def pretty_select_sport(sports: dict) -> str:
 
         print("Invalid selection. Please try again.\n")
 
-# Main function to orchestrate the connection, data streaming, parsing, and sending to Singular Live DSM
-def main():
-
-    selected_sport = pretty_select_sport(SPORT_OPTIONS)
-
+def ssh_read(selected_sport):
     ips = None
     tries = 0
     while not ips and tries < 3:
@@ -292,29 +295,51 @@ def main():
     if not client:
         print("Could not connect to any device with provided credentials. Exiting.")
         return
-
+    
     stream_remote_script(client, selected_sport)
 
     client.close()
     print("Connection closed. Exiting.")
 
-# For testing purposes, you can call parse_line directly with a sample input line
-# def main():
-#     scoreData = {
-#         "minutes": 0,
-#         "seconds": 0,
-#         "timer_stopped": False,
-#         "home_score": 0,
-#         "away_score": 0,
-#         "home_fouls": 0,
-#         "away_fouls": 0,
-#         "period": 1
-#     }
-#     line = "b'\x01 7:34         2  4 1 1      3     F2\x04'"
-#     line = line.strip("b'").strip("'")
-#     selected_sport = pretty_select_sport(SPORT_OPTIONS)
-#     scoreData = parse_line(selected_sport, line, scoreData)
-#     pretty_print_score(scoreData, selected_sport)
+def local_read(selected_sport):
+    scoreData = {
+        "minutes": 0,
+        "seconds": 0,
+        "timer_stopped": False,
+        "home_score": 0,
+        "away_score": 0,
+        "home_fouls": 0,
+        "away_fouls": 0,
+        "period": 1
+    }
+
+    process = subprocess.Popen(
+        ["python3", "-u", REMOTE_SCRIPT],
+        stdout=subprocess.PIPE,
+        text=True,
+        bufsize=1
+    )
+
+    try:
+        while True:
+            for line in process.stdout:
+                parsed_data = parse_line(selected_sport, line, scoreData)
+                update_needed = False
+                for k, v in parsed_data.items():
+                    if scoreData.get(k) != v:
+                        scoreData[k] = v
+                        update_needed = True
+                if update_needed:
+                    pretty_print_score(scoreData, selected_sport)
+                    send_to_singular(parsed_data)
+
+    except KeyboardInterrupt:
+        print("\nStopping serial read script...")
+
+def main():
+    selected_sport = pretty_select_sport(SPORT_OPTIONS)
+    # ssh_read(selected_sport)
+    local_read(selected_sport)
 
 if __name__ == "__main__":
     main()
