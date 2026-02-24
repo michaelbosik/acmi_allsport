@@ -1,0 +1,56 @@
+[
+    {
+        "id": "no_scores_hn",
+        "title": "HomeName",
+        "text": "Arlington",
+        "position": {
+            "x": 0.0,
+            "y": 0.0
+        }
+    },
+    {
+        "id": "no_scores_an",
+        "title": "AwayName",
+        "text": "---",
+        "position": {
+            "x": 0.0,
+            "y": 0.0
+        }
+    },
+    {
+        "id": "scores_hn",
+        "title": "HomeName",
+        "text": "Arlington",
+        "position": {
+            "x": 0.0,
+            "y": 0.0
+        }
+    },
+    {
+        "id": "scores_an",
+        "title": "AwayName",
+        "text": "---",
+        "position": {
+            "x": 0.0,
+            "y": 0.0
+        }
+    },
+    {
+        "id": "scores_hs",
+        "title": "HomeScore",
+        "text": "0",
+        "position": {
+            "x": 0.0,
+            "y": 0.0
+        }
+    },
+    {
+        "id": "scores_as",
+        "title": "AwayScore",
+        "text": "0",
+        "position": {
+            "x": 0.0,
+            "y": 0.0
+        }
+    }
+]

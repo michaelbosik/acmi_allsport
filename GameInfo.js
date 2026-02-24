@@ -7,7 +7,9 @@
       const GAMEINFO = comp.parent().find("Game Info")[0];
       const THUMBNAIL = comp.parent().find('Thumbnail')[0];
       const SCOREBUG = comp.parent().find('Score Bug')[0];
+      const GRAPHICS = comp.parent().find('Graphics')[0];
       const LOWERMATCHUP = comp.parent().find('Lower Match Up')[0];
+      // const LOWERMATCHUP = GRAPHICS.find('Lower Match Up')[0];
 
       let game_info_control_node = GAMEINFO.getControlNode().payload;
       let score_bug_control_node = SCOREBUG.getControlNode().payload;
@@ -17,7 +19,7 @@
       let away_team = away_teams.find(t => t.id === game_info_control_node['Opponent']);
 
       const score_bug_styles = SCOREBUG.getModel().find(i => i.id === 'ScoreBug Style')['selections'];
-      let score_bug_style = score_bug_styles.find(s => s.id === game_info_control_node['ScoreBug Style']);
+      let score_bug_style = score_bug_styles.find(s => s.id === score_bug_control_node['ScoreBug Style']);
 
       let score_data = {
         'minutes': 0,
@@ -134,7 +136,7 @@
         });
         SCOREBUG.findWidget('AwayName').forEach(e => {
           e.setPayload({
-            'text': away_team['abreviation']
+            'text': away_team['abbreviation']
           });
         });
         SCOREBUG.findWidget('AwayScore').forEach(e => {
@@ -163,7 +165,18 @@
 
       function updateLowerMatchUp() {
         if (lower_matchup_control_node['show_scores']) {
-          // ADD SCORES TO LOWER MATCH UP
+          let score_text = `Arlington: ${score_data['home_score']}   VS   ${away_team['title']}: ${score_data['away_score']}`;
+          LOWERMATCHUP.findWidget('Score')[0].setPayload({
+            'text': score_text
+          });
+          LOWERMATCHUP.findWidget('HomeName')[0].setVisibility('false');
+          LOWERMATCHUP.findWidget('AwayName')[0].setVisibility('false');
+        } else {
+          LOWERMATCHUP.findWidget('Score')[0].setPayload({
+            'text': 'VS'
+          });
+          LOWERMATCHUP.findWidget('HomeName')[0].setVisibility('true');
+          LOWERMATCHUP.findWidget('AwayName')[0].setVisibility('true');
         }
 
         LOWERMATCHUP.findWidget('Primary').forEach(e => {
@@ -198,21 +211,33 @@
       }
 
       GAMEINFO.addListener('payload_changed', (event, msg, e) => {
-        game_info_control_node = comp.getControlNode().payload;
+        for (const key in msg.payload) {
+          if (game_info_control_node[key] !== msg.payload[key]) {
+            game_info_control_node[key] = msg.payload[key];
+          }
+        }
         away_team = away_teams.find(t => t.id === game_info_control_node['Opponent']);
         updateUI();
         e.stopPropagation();
       });
 
       SCOREBUG.addListener('payload_changed', (event, msg, e) => {
-        score_bug_control_node = SCOREBUG.getControlNode().payload;
-        score_bug_style = score_bug_styles.find(s => s.id === game_info_control_node['ScoreBug Style']);
+      	for (const key in msg.payload) {
+      		if (score_bug_control_node[key] !== msg.payload[key]) {
+      			score_bug_control_node[key] = msg.payload[key];
+      		}
+      	}
+        score_bug_style = score_bug_styles.find(s => s.id === score_bug_control_node['ScoreBug Style']);
         updateUI();
         e.stopPropagation();
       });
 
       LOWERMATCHUP.addListener('payload_changed', (event, msg, e) => {
-        lower_matchup_control_node = LOWERMATCHUP.getControlNode().payload;
+        for (const key in msg.payload) {
+          if (lower_matchup_control_node[key] !== msg.payload[key]) {
+            lower_matchup_control_node[key] = msg.payload[key];
+          }
+        }
         updateUI();
         e.stopPropagation();
       });

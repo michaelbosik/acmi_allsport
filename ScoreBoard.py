@@ -224,7 +224,10 @@ def stream_remote_script(client, selected_sport):
         while True:
             if channel.recv_ready():
                 chunk = channel.recv(1024).decode("utf-8", errors="ignore")
-                send_to_singular(parse_line(selected_sport, chunk, scoreData))
+                parsed_data = parse_line(selected_sport, chunk, scoreData)
+                if parsed_data != scoreData:
+                    scoreData = parsed_data
+                    send_to_singular(parsed_data)
 
             if channel.recv_stderr_ready():
                 error = channel.recv_stderr(1024).decode("utf-8", errors="ignore")
