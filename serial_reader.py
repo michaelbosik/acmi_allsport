@@ -3,9 +3,6 @@
 # This script connects to a serial port and continuously reads data from it, printing the output to the console.
 # It handles serial connection errors and attempts to reconnect if the connection is lost.
 # To run this script, use `python3 serial_reader.py` in the terminal. 
-#
-# IMPORTANT - Make sure to install pyserial using `pip3 install pyserial` before running this script.
-# IMPORTANT - Make sure to update the SERIAL_PORT variable to match your system's configuration.
 
 import serial
 import time
@@ -15,7 +12,7 @@ import time
 # You can use `ls /dev/tty.*` in the terminal to find the correct port.
 
 # SERIAL_PORT = '/dev/ttyUSB0'
-SERIAL_PORT = '/dev/tty.usbserial-11210'
+SERIAL_PORT = '/dev/tty.usbserial-11230'
 
 BAUD_RATE = 9600
 TIMEOUT = 0
