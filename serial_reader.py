@@ -4,6 +4,7 @@
 # It handles serial connection errors and attempts to reconnect if the connection is lost.
 # To run this script, use `python3 serial_reader.py` in the terminal. 
 
+import socket
 import serial
 import time
 
@@ -11,8 +12,7 @@ import time
 # For macOS, it is usually /dev/tty.usbserial-XXXX or /dev/tty.usbmodemXXXX.
 # You can use `ls /dev/tty.*` in the terminal to find the correct port.
 
-# SERIAL_PORT = '/dev/ttyUSB0'
-SERIAL_PORT = '/dev/tty.usbserial-11230'
+SERIAL_PORT = '/dev/ttyUSB0'
 
 BAUD_RATE = 9600
 TIMEOUT = 0
@@ -30,13 +30,14 @@ def open_serial():
       time.sleep(2)
 
 def main():
+
   ser = open_serial()
+
   while True:
     try:
-      print("", flush=True)
-      raw = ser.readline() # Read a line of data from the serial port
-      raw = raw.decode('utf-8', errors='replace').strip() # Decode bytes to string and remove whitespace
-      print(raw, end="") # Print the raw data
+      raw = ser.readline().decode('utf-8', errors='ignore').strip()
+      if raw:
+        print(raw, flush=True)
       time.sleep(1)
     except serial.SerialException as e:
       print(f"Serial exception: {e}. Reconnecting...", flush=True)

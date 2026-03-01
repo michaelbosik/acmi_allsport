@@ -6,6 +6,20 @@
     "position": {
         "x": -38.0,
         "y": -40.5
+    },
+    "events": {
+      "power_play_home": {
+        "position": {
+          "x": 15.0,
+          "y": -2.5
+        }
+      },
+      "power_play_away": {
+        "position": {
+          "x": 15.0,
+          "y": 2.5
+        }
+      }
     }
   },
   {
@@ -15,6 +29,20 @@
     "position": {
         "x": 37.5,
         "y": 37.5
+    },
+    "events": {
+      "power_play_home": {
+        "position": {
+          "x": -15.0,
+          "y": -2.5
+        }
+      },
+      "power_play_away": {
+        "position": {
+          "x": -15.0,
+          "y": 2.5
+        }
+      }
     }
   },
   {
@@ -24,6 +52,20 @@
     "position": {
         "x": -23.0,
         "y": -43.0
+    },
+    "events": {
+      "power_play_home": {
+        "position": {
+          "x": -17.3,
+          "y": 5.0
+        }
+      },
+      "power_play_away": {
+        "position": {
+          "x": -1.2,
+          "y": 5.0
+        }
+      }
     }
   },
   {
@@ -33,6 +75,20 @@
     "position": {
         "x": 0.0,
         "y": 40.0
+    },
+    "events": {
+      "power_play_home": {
+        "position": {
+          "x": -17.3,
+          "y": -5.0
+        }
+      },
+      "power_play_away": {
+        "position": {
+          "x": -1.2,
+          "y": -5.0
+        }
+      }
     }
   }
 ]

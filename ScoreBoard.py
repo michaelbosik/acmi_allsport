@@ -4,22 +4,10 @@
 # reads the output, parses it, and sends the data to a Singular Live Data Stream Manager (DSM) for use in live broadcasts.
 # To run this script, use `python3 score_board.py` in the terminal.
 
-from http import client
 import subprocess
 import re
-from xxlimited import new
-import paramiko
-import socket
-import time
-import json
-from paramiko import channel
 import requests
 
-MAC_PREFIXES = ["b8:27:eb", "dc:a6:32"]
-USERNAME = "acmi"
-PASSWORD = "acmi"
-
-REMOTE_SCRIPT = "/home/acmi/Desktop/serial_reader.py"
 LOCAL_SCRIPT = "./serial_reader.py"
 
 DATA_STREAM_URL = "https://datastream.singular.live/datastreams/"
@@ -82,8 +70,8 @@ PARSING_INDEXES_5000 = {
         "timer_stopped": (7, 8),
         "home_score": (8, 10),
         "away_score": (10, 12),
-        "home_shots": (14, 16),
-        "away_shots": (16, 18),
+        "home_fouls": (14, 16),
+        "home_fouls": (16, 18),
         "period": (18, 19),
         "home_penalty_minutes": (22, 24),
         "home_penalty_seconds": (25, 27),
@@ -102,8 +90,8 @@ def pretty_print_score(score_data: dict, selected_sport: str):
     home_score = score_data.get("home_score", 0)
     away_score = score_data.get("away_score", 0)
 
-    home_shots = score_data.get("home_shots", 0)
-    away_shots = score_data.get("away_shots", 0)
+    home_fouls = score_data.get("home_fouls", 0)
+    home_fouls = score_data.get("home_fouls", 0)
 
     period = score_data.get("period", 0)
 
@@ -121,8 +109,8 @@ def pretty_print_score(score_data: dict, selected_sport: str):
     print(f"   TIME:   {minutes:02d}:{seconds:02d}   ({timer_status})")
     print("-" * 50)
 
-    print(f"   HOME:   {home_score:>3}    Shots: {home_shots:>2}")
-    print(f"   AWAY:   {away_score:>3}    Shots: {away_shots:>2}")
+    print(f"   HOME:   {home_score:>3}    Shots: {home_fouls:>2}")
+    print(f"   AWAY:   {away_score:>3}    Shots: {home_fouls:>2}")
     print(f"   HPEN:   {home_penalty_minutes:02d}:{home_penalty_seconds:02d}   ({timer_status})")
     print(f"   APEN:   {away_penalty_minutes:02d}:{away_penalty_seconds:02d}   ({timer_status})")
 
@@ -175,7 +163,8 @@ def parse_line(selected_sport, line, scoreData):
     line = re.sub(r"[\x00-\x1F\x7F]", "", line)
     line = line.rstrip("\n")
 
-    indexes = PARSING_INDEXES_5000[selected_sport]
+    # indexes = PARSING_INDEXES_5000[selected_sport]
+    indexes = PARSING_INDEXES_CG[selected_sport]
 
     parsed_data = {}
 
@@ -199,140 +188,6 @@ def parse_line(selected_sport, line, scoreData):
 
     return parsed_data
 
-# Function to scan the local network for devices with specified MAC address prefixes and return their IP addresses
-# def get_ip_from_mac(mac_prefixes):
-#     print("Scanning network for devices with MAC prefixes:", mac_prefixes)
-#     result = subprocess.run(
-#         ["arp", "-a"],
-#         capture_output=True,
-#         text=True
-#     )
-
-#     output = result.stdout.lower()
-#     ips = []
-
-#     for line in output.splitlines():
-#         for prefix in mac_prefixes:
-#             if prefix in line:
-#                 match = re.search(r"\((.*?)\)", line)
-#                 if match:
-#                     ips.append(match.group(1))
-
-#     if ips:
-#         print(f"Found device(s) at {ips}")
-#         return ips
-
-#     print("No devices found with specified MAC prefixes.")
-#     return None
-
-# Function to attempt SSH connection to each IP address and return the first successful connection along with the working IP
-# def find_working_pi(ip_list, username, password):
-#     for ip in ip_list:
-#         print(f"Trying connection to {username}@{ip}...")
-
-#         client = paramiko.SSHClient()
-#         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-#         try:
-#             client.connect(
-#                 ip,
-#                 username=username,
-#                 password=password,
-#                 timeout=3
-#             )
-
-#             print(f"Connected successfully to {ip}")
-#             return client
-
-#         except paramiko.AuthenticationException:
-#             print(f"Authentication failed on {ip}")
-#         except (socket.timeout, paramiko.SSHException, OSError):
-#             print(f"Connection failed on {ip}")
-#         finally:
-#             # If connection failed, make sure we close
-#             if not client.get_transport() or not client.get_transport().is_active():
-#                 client.close()
-
-#     return None
-
-# def ssh_read(selected_sport):
-
-#     scoreData = {
-#         "minutes": 0,
-#         "seconds": 0,
-#         "milliseconds": 0,
-#         "timer_stopped": True,
-#         "home_score": 0,
-#         "away_score": 0,
-#         "home_shots": 0,
-#         "away_shots": 0,
-#         "period": 1,
-#         "home_penalty_minutes": 0,
-#         "home_penalty_seconds": 0,
-#         "away_penalty_minutes": 0,
-#         "away_penalty_seconds": 0
-#     }
-
-#     ips = None
-#     tries = 0
-#     while not ips and tries < 3:
-#         ips = get_ip_from_mac(MAC_PREFIXES)
-#         tries += 1
-#     if not ips:
-#         print("Could not find any devices on the network with specified MAC prefixes. Exiting.")
-#         return
-
-#     client = None
-#     tries = 0
-#     while not client and tries < 3:
-#         client = find_working_pi(ips, USERNAME, PASSWORD)
-#         tries += 1
-#     if not client:
-#         print("Could not connect to any device with provided credentials. Exiting.")
-#         return
-    
-#     transport = client.get_transport()
-#     try:
-#         print(f"Starting remote script at path {REMOTE_SCRIPT}...")
-#         channel = transport.open_session()
-#         channel.get_pty()
-#         channel.exec_command(f"python3 -u {REMOTE_SCRIPT}")
-#     except Exception as e:
-#         print(f"Failed to execute remote script: {e}")
-#         return
-
-#     try:
-#         while True:
-#             if channel.recv_ready():
-#                 chunk = channel.recv(1024).decode("utf-8", errors="ignore")
-#                 parsed_data = parse_line(selected_sport, chunk, scoreData)
-#                 update_needed = False
-#                 for k, v in parsed_data.items():
-#                     if scoreData.get(k) != v:
-#                         scoreData[k] = v
-#                         update_needed = True
-#                 if update_needed:
-#                     pretty_print_score(scoreData, selected_sport)
-#                     send_to_singular(parsed_data)
-
-
-#             if channel.recv_stderr_ready():
-#                 error = channel.recv_stderr(1024).decode("utf-8", errors="ignore")
-#                 print(error, end="")
-
-#             if channel.exit_status_ready():
-#                 break
-
-#             time.sleep(0.1)
-
-#     except KeyboardInterrupt:
-#         print("\nStopping remote script...")
-#         channel.send("\x03")  # Send Ctrl+C to stop the script
-#         channel.close()
-
-#     client.close()
-#     print("Connection closed. Exiting.")
-
 def local_read(selected_sport):
     scoreData = {
         "minutes": 0,
@@ -341,8 +196,8 @@ def local_read(selected_sport):
         "timer_stopped": True,
         "home_score": 0,
         "away_score": 0,
-        "home_shots": 0,
-        "away_shots": 0,
+        "home_fouls": 0,
+        "home_fouls": 0,
         "period": 1,
         "home_penalty_minutes": 0,
         "home_penalty_seconds": 0,
@@ -359,23 +214,26 @@ def local_read(selected_sport):
 
     try:
         while True:
-            for line in process.stdout:
-                parsed_data = parse_line(selected_sport, line, scoreData)
-                update_needed = False
-                for k, v in parsed_data.items():
-                    if scoreData.get(k) != v:
-                        scoreData[k] = v
-                        update_needed = True
-                if update_needed:
-                    pretty_print_score(scoreData, selected_sport)
-                    send_to_singular(parsed_data)
+            line = process.stdout.readline().strip()
+            if not line:
+                break
+            print(line, end="")
+            parsed_data = parse_line(selected_sport, line, scoreData)
+            update_needed = False
+            for k, v in parsed_data.items():
+                if scoreData.get(k) != v:
+                    scoreData[k] = v
+                    update_needed = True
+            if update_needed:
+                pretty_print_score(scoreData, selected_sport)
+                send_to_singular(parsed_data)
 
     except KeyboardInterrupt:
         print("\nStopping serial read script...")
 
 def main():
-    selected_sport = pretty_select_sport(SPORT_OPTIONS)
-    # ssh_read(selected_sport)
+    # selected_sport = pretty_select_sport(SPORT_OPTIONS)
+    selected_sport = "hockey"  # Default sport for testing
     local_read(selected_sport)
 
 if __name__ == "__main__":
