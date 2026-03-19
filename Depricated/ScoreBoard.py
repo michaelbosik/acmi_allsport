@@ -13,17 +13,17 @@ LOCAL_SCRIPT = "./serial_reader.py"
 DATA_STREAM_URL = "https://datastream.singular.live/datastreams/"
 DATA_STREAM_PRIVATE_TOKEN = "7mEnVZu4rHlnUVJW2la78d"
 
-SPORT_OPTIONS = {
-    "1": "basketball",
-    "2": "hockey",
-    # "3": "football",
-    # "4": "soccer",
-    # "5": "baseball",
-    # "6": "volleyball",
-    # "7": "swimming",
-    # "8": "wrestling",
-    # "9": "tennis"
-}
+# SPORT_OPTIONS = {
+#     "1": "basketball",
+#     "2": "hockey",
+#     # "3": "football",
+#     # "4": "soccer",
+#     # "5": "baseball",
+#     # "6": "volleyball",
+#     # "7": "swimming",
+#     # "8": "wrestling",
+#     # "9": "tennis"
+# }
 
 # Define the parsing indexes for each field based on the expected serial data format for each sport.
 
@@ -33,21 +33,21 @@ PARSING_INDEXES_CG = {
         "minutes": (0, 2),
         "seconds": (3, 5),
         "timer_stopped": (7, 8),
-        "home_score": (13, 15),
-        "away_score": (16, 18),
-        "home_fouls": (18, 20),
-        "away_fouls": (20, 22),
-        "period": (28, 29)
+        "score_home": (13, 15),
+        "score_away": (16, 18),
+        "fouls_home": (18, 20),
+        "fouls_away": (20, 22),
+        "game_period": (28, 29)
     },
     "hockey": {
         "minutes": (0, 2),
         "seconds": (3, 5),
         "timer_stopped": (7, 8),
-        "home_score": (8, 10),
-        "away_score": (10, 12),
-        "home_fouls": (14, 16),
-        "away_fouls": (16, 18),
-        "period": (18, 19)
+        "score_home": (8, 10),
+        "score_away": (10, 12),
+        "fouls_home": (14, 16),
+        "fouls_away": (16, 18),
+        "game_period": (18, 19)
     }
     # Add parsing indexes for other sports here
 }
@@ -57,22 +57,22 @@ PARSING_INDEXES_5000 = {
         "minutes": (0, 2),
         "seconds": (3, 5),
         "timer_stopped": (7, 8),
-        "home_score": (13, 15),
-        "away_score": (16, 18),
-        "home_fouls": (18, 20),
-        "away_fouls": (20, 22),
-        "period": (28, 29)
+        "score_home": (13, 15),
+        "score_away": (16, 18),
+        "fouls_home": (18, 20),
+        "fouls_away": (20, 22),
+        "game_period": (28, 29)
     },
     "hockey": {
         "minutes": (0, 2),
         "seconds": (3, 5),
         "milliseconds": (6, 7),
         "timer_stopped": (7, 8),
-        "home_score": (8, 10),
-        "away_score": (10, 12),
-        "home_fouls": (14, 16),
-        "home_fouls": (16, 18),
-        "period": (18, 19),
+        "score_home": (8, 10),
+        "score_away": (10, 12),
+        "fouls_home": (14, 16),
+        "fouls_home": (16, 18),
+        "game_period": (18, 19),
         "home_penalty_minutes": (22, 24),
         "home_penalty_seconds": (25, 27),
         "away_penalty_minutes": (36, 38),
@@ -87,13 +87,13 @@ def pretty_print_score(score_data: dict, selected_sport: str):
     seconds = score_data.get("seconds", 0)
     stopped = score_data.get("timer_stopped", False)
 
-    home_score = score_data.get("home_score", 0)
-    away_score = score_data.get("away_score", 0)
+    score_home = score_data.get("score_home", 0)
+    score_away = score_data.get("score_away", 0)
 
-    home_fouls = score_data.get("home_fouls", 0)
-    home_fouls = score_data.get("home_fouls", 0)
+    fouls_home = score_data.get("fouls_home", 0)
+    fouls_home = score_data.get("fouls_home", 0)
 
-    period = score_data.get("period", 0)
+    game_period = score_data.get("game_period", 0)
 
     home_penalty_minutes = score_data.get("home_penalty_minutes", 0)
     home_penalty_seconds = score_data.get("home_penalty_seconds", 0)
@@ -109,13 +109,13 @@ def pretty_print_score(score_data: dict, selected_sport: str):
     print(f"   TIME:   {minutes:02d}:{seconds:02d}   ({timer_status})")
     print("-" * 50)
 
-    print(f"   HOME:   {home_score:>3}    Shots: {home_fouls:>2}")
-    print(f"   AWAY:   {away_score:>3}    Shots: {home_fouls:>2}")
+    print(f"   HOME:   {score_home:>3}    Shots: {fouls_home:>2}")
+    print(f"   AWAY:   {score_away:>3}    Shots: {fouls_home:>2}")
     print(f"   HPEN:   {home_penalty_minutes:02d}:{home_penalty_seconds:02d}   ({timer_status})")
     print(f"   APEN:   {away_penalty_minutes:02d}:{away_penalty_seconds:02d}   ({timer_status})")
 
     print("-" * 50)
-    print(f"   PERIOD: {period}")
+    print(f"   PERIOD: {game_period}")
     print("=" * 50 + "\n")
 
 # Function to display a menu for selecting the sport to listen for and return the selected sport
@@ -156,37 +156,37 @@ def send_to_singular(parsed_data):
     print(f"Data sent to Singular Live DSM successfully. Status code: {response.status_code}")
 
 # Function to parse a line of serial data based on the expected format for the selected sport and update the scoreData dictionary accordingly
-def parse_line(selected_sport, line, scoreData):
-    # print(f"Raw line: '{line}'")
+# def parse_line(selected_sport, line, scoreData):
+#     # print(f"Raw line: '{line}'")
 
-    line = line.strip("b'").strip("'")
-    line = re.sub(r"[\x00-\x1F\x7F]", "", line)
-    line = line.rstrip("\n")
+#     line = line.strip("b'").strip("'")
+#     line = re.sub(r"[\x00-\x1F\x7F]", "", line)
+#     line = line.rstrip("\n")
 
-    # indexes = PARSING_INDEXES_5000[selected_sport]
-    indexes = PARSING_INDEXES_CG[selected_sport]
+#     indexes = PARSING_INDEXES_5000[selected_sport]
+#     # indexes = PARSING_INDEXES_CG[selected_sport]
 
-    parsed_data = {}
+#     parsed_data = {}
 
-    if len(line) < 26:
-        # print(f"Line length: {len(line)}. Expected at least {max(end for _, end in indexes.values())} characters.")
-        return scoreData
+#     if len(line) < 26:
+#         # print(f"Line length: {len(line)}. Expected at least {max(end for _, end in indexes.values())} characters.")
+#         return scoreData
 
-    try:
-        for field, (start, end) in indexes.items():
-            raw_value = line[start:end].strip()
-            # print(f"Extracted raw value for {field}: '{raw_value}'")
+#     try:
+#         for field, (start, end) in indexes.items():
+#             raw_value = line[start:end].strip()
+#             # print(f"Extracted raw value for {field}: '{raw_value}'")
 
-            if field == "timer_stopped":
-                parsed_data[field] = (raw_value == "s")
-            elif raw_value:
-                parsed_data[field] = int(raw_value)
-            else:
-                parsed_data[field] = 0
-    except Exception as e:  
-        print(f"Error parsing line: {e}. Line content: '{line}'")
+#             if field == "timer_stopped":
+#                 parsed_data[field] = (raw_value == "s")
+#             elif raw_value:
+#                 parsed_data[field] = int(raw_value)
+#             else:
+#                 parsed_data[field] = 0
+#     except Exception as e:  
+#         print(f"Error parsing line: {e}. Line content: '{line}'")
 
-    return parsed_data
+#     return parsed_data
 
 def local_read(selected_sport):
     scoreData = {
@@ -194,11 +194,11 @@ def local_read(selected_sport):
         "seconds": 0,
         "milliseconds": 0,
         "timer_stopped": True,
-        "home_score": 0,
-        "away_score": 0,
-        "home_fouls": 0,
-        "home_fouls": 0,
-        "period": 1,
+        "score_home": 0,
+        "score_away": 0,
+        "fouls_home": 0,
+        "fouls_home": 0,
+        "game_period": 1,
         "home_penalty_minutes": 0,
         "home_penalty_seconds": 0,
         "away_penalty_minutes": 0,
