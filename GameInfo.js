@@ -104,53 +104,7 @@
         },
       };
 
-      let score_data = {
-        game_timer: {
-          minutes: 0,
-          seconds: 0,
-          milliseconds: 0,
-          timer_stopped: true,
-        },
-        score_home: 0,
-        score_away: 0,
-        fouls_home: 0,
-        fouls_away: 0,
-        game_period: 0,
-        penalties: {
-          home: {
-            penalty_1: {
-              player: 0,
-              timer: {
-                minutes: 0,
-                seconds: 0,
-              },
-            },
-            penalty_2: {
-              player: 0,
-              timer: {
-                minutes: 0,
-                seconds: 0,
-              },
-            },
-          },
-          away: {
-            penalty_1: {
-              player: 0,
-              timer: {
-                minutes: 0,
-                seconds: 0,
-              },
-            },
-            penalty_2: {
-              player: 0,
-              timer: {
-                minutes: 0,
-                seconds: 0,
-              },
-            },
-          },
-        },
-      };
+      const score_data = structuredClone(BASE_SCORE_DATA);
 
       datastream = context.utils.createDataStream(
         "2RyUH29htuuAGDajfq2fkD",
@@ -159,7 +113,7 @@
             case "message":
               console.log("Received score data: ", status, payload);
               score_data = parse_line(payload.payload);
-              updateUI();
+              updateUI(score_data);
               break;
             case "connecting":
             case "connect":
@@ -176,6 +130,8 @@
       );
 
       function parse_line(line) {
+        let selected_sport = "hockey"; //get from control node
+
         if (line.length < 26) {
           // console.log(`Line length: ${line.length}. Expected at least ${Math.max(...Object.values(indexes).map(([_, end]) => end))} characters.`);
           return score_data;
@@ -187,6 +143,34 @@
 
         const indexes = PARSING_INDEXES_5000[selected_sport];
         const parsed_data = structuredClone(BASE_SCORE_DATA);
+
+        let lastTimerState = parsed_data.game_timer.timer_stopped;
+
+        // TODO - only change timer(s) via timer_stopped value update in parsed_data
+        function handleTimer(parsed_data) {
+          const stopped = Boolean(parsed_data.game_timer.timer_stopped);
+
+          if (lastTimerState && !stopped) {
+            // Transition: stopped → running
+            startTimerFrom(
+              parsed_data.game_timer.minutes,
+              parsed_data.game_timer.seconds,
+              parsed_data.game_timer.milliseconds,
+            );
+          }
+
+          if (!lastTimerState && stopped) {
+            // Transition: running → stopped
+            stopTimer();
+            resetTimerTo(
+              parsed_data.game_timer.minutes,
+              parsed_data.game_timer.seconds,
+              parsed_data.game_timer.milliseconds,
+            );
+          }
+
+          lastTimerState = stopped;
+        }
 
         function checkSpecial(key, raw) {
           switch (key) {
@@ -237,6 +221,7 @@
         }
 
         applyIndexes(indexes, parsed_data);
+        // handleTimer(parsed_data)
 
         return parsed_data;
       }
@@ -461,6 +446,47 @@
           });
         }
 
+        function updateWidgets() {
+          const widget_payloads = {
+            color_primary: {
+              fillGradient: {
+                solidColor: CONTROLNODES.game_info["color_primary"],
+              },
+            },
+            color_secondary: {
+              fillGradient: {
+                solidColor: CONTROLNODES.game_info["color_secondary"],
+              },
+            },
+            title_away: { text: away_team["title"] },
+            abbr_away: { text: away_team["abbreviation"] },
+            score_away: { text: score_data["score_away"] },
+            score_home: { text: score_data["score_home"] },
+            icon_away: { image: away_team["icon"] },
+          };
+
+          SUBCOMPS.forEach((sub_comp) => {
+            function checkContainsWidget(widget) {
+              try {
+                let contains = sub_comp.findWidget(widget);
+                // console.log(sub_comp.findWidget(widget));
+                return true;
+              } catch {
+                // console.log(`No ${widget} widgets in ${sub_comp.name}`);
+                return false;
+              }
+            }
+
+            Object.entries(widget_payloads).forEach(([widget, payload]) => {
+              if (checkContainsWidget(widget)) {
+                sub_comp.findWidget(widget).forEach((w) => {
+                  w.setPayload(payload);
+                });
+              }
+            });
+          });
+        }
+
         const away_team = GAMEINFO.getModel()
           .find((i) => i.id === "Opponent")
           ["selections"].find(
@@ -473,51 +499,12 @@
             (s) => s.id === CONTROLNODES.score_bug["score_bug_style"],
           );
 
-        const widget_payloads = {
-          color_primary: {
-            fillGradient: {
-              solidColor: CONTROLNODES.game_info["color_primary"],
-            },
-          },
-          color_secondary: {
-            fillGradient: {
-              solidColor: CONTROLNODES.game_info["color_secondary"],
-            },
-          },
-          title_away: { text: away_team["title"] },
-          abbr_away: { text: away_team["abbreviation"] },
-          score_away: { text: score_data["score_away"] },
-          score_home: { text: score_data["score_home"] },
-          icon_away: { image: away_team["icon"] },
-        };
-
-        let selected_sport = "hockey"; //get from control node
         console.log(payload);
 
         updateThumbnail();
         updateScoreBug();
         updateAlerts();
-
-        SUBCOMPS.forEach((sub_comp) => {
-          function checkContainsWidget(widget) {
-            try {
-              let contains = sub_comp.findWidget(widget);
-              // console.log(sub_comp.findWidget(widget));
-              return true;
-            } catch {
-              // console.log(`No ${widget} widgets in ${sub_comp.name}`);
-              return false;
-            }
-          }
-
-          Object.entries(widget_payloads).forEach(([widget, payload]) => {
-            if (checkContainsWidget(widget)) {
-              sub_comp.findWidget(widget).forEach((w) => {
-                w.setPayload(payload);
-              });
-            }
-          });
-        });
+        updateWidgets();
       }
 
       SUBCOMPS.forEach((sub_comp) => {
