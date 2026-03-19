@@ -7,7 +7,7 @@
       const GAMEINFO = comp.parent().find("Game Info")[0];
       const THUMBNAIL = comp.parent().find("Thumbnail")[0];
       const SCOREBUG = comp.parent().find("Score Bug")[0];
-      const ALERTS = comp.parent().find("Alert")[0];
+      const ALERTS = comp.parent().find("Alerts")[0];
 
       const SUBCOMPS = [GAMEINFO, THUMBNAIL, SCOREBUG, ALERTS];
       const CONTROLNODES = {
@@ -249,6 +249,12 @@
           const POWERPLAY = SCOREBUG.find("PowerPlay")[0];
           const EMPTYNET = SCOREBUG.find("EmptyNet")[0];
 
+          const score_bug_style = SCOREBUG.getModel()
+            .find((i) => i.id === "score_bug_style")
+            ["selections"].find(
+              (s) => s.id === CONTROLNODES.score_bug["score_bug_style"],
+            );
+
           function manualUpdateScoreData() {
             const power_play_selection = SCOREBUG.getModel()
               .find((i) => i.id === "power_play")
@@ -404,16 +410,46 @@
         }
 
         function updateAlerts() {
+          function setText(text) {
+            ALERTS.findWidget("text").forEach((w) => {
+              w.setPayload({
+                text: text,
+              });
+            });
+          }
+
+          const alerts = [
+            "match_up",
+            "timeout_home",
+            "timeout_away",
+            "goal",
+            "bottom_text",
+          ];
+
+          const alert_selection = ALERTS.getModel()
+            .find((i) => i.id === "alert_selection")
+            ["selections"].find(
+              (s) => s.id === CONTROLNODES.alerts["alert_selection"],
+            );
+
+          const title_away_override =
+            CONTROLNODES.alerts["title_away_override"];
+
+          if (title_away_override != "") {
+            away_team["title"] = title_away_override;
+          } else if (/\s/g.test(away_team["title"])) {
+            away_team["title"] =
+              away_team["title"].substring(0, 1) +
+              "." +
+              away_team["title"].substring(
+                away_team["title"].indexOf(" "),
+                away_team["title"].length,
+              );
+          } else {
+            away_team["title"] = CONTROLNODES.game_info["Opponent"];
+          }
+
           if (CONTROLNODES.alerts["show_scores"]) {
-            if (/\s/g.test(away_team["title"])) {
-              away_team["title"] =
-                away_team["title"].substring(0, 1) +
-                "." +
-                away_team["title"].substring(
-                  away_team["title"].indexOf(" "),
-                  away_team["title"].length,
-                );
-            }
             let score_text = `Arlington: ${score_data["score_home"]}  vs   ${away_team["title"]}: ${score_data["score_away"]}`;
             ALERTS.findWidget("show_scores").forEach((w) => {
               w.setPayload({
@@ -439,10 +475,29 @@
               w.setVisibility("true");
             });
           }
-          ALERTS.findWidget("text").forEach((w) => {
-            w.setPayload({
-              text: CONTROLNODES.alerts["bottom_text"],
-            });
+
+          alerts.forEach((a) => {
+            let group = ALERTS.findGroup(a)[0];
+            if (group) {
+              group.setVisibility(false);
+              if (a === alert_selection.id) {
+                group.setVisibility(true);
+                switch (a) {
+                  case "timeout_home":
+                    setText("TIMEOUT Arlington");
+                    break;
+                  case "timeout_away":
+                    setText(`TIMEOUT ${away_team["title"]}`);
+                    break;
+                  case "goal":
+                    setText("GOAL");
+                    break;
+                  default:
+                    setText(CONTROLNODES.alerts["bottom_text"]);
+                    break;
+                }
+              }
+            }
           });
         }
 
@@ -491,12 +546,6 @@
           .find((i) => i.id === "Opponent")
           ["selections"].find(
             (t) => t.id === CONTROLNODES.game_info["Opponent"],
-          );
-
-        const score_bug_style = SCOREBUG.getModel()
-          .find((i) => i.id === "score_bug_style")
-          ["selections"].find(
-            (s) => s.id === CONTROLNODES.score_bug["score_bug_style"],
           );
 
         console.log(payload);
