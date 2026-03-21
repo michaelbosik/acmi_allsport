@@ -1,5 +1,17 @@
 [
   {
+    "id": "Fire Department",
+    "title": "Fire Department",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/5NAnYrbYSI9EcrkzGmgvub_w1456h1485.png",
+    "abbreviation": "AFD"
+  },
+  {
+    "id": "Police Department",
+    "title": "Police Department",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/0XzJBikmbr1obONP5hvefE_w1597h1937.png",
+    "abbreviation": "APD"
+  },
+  {
     "id": "Arlington Catholic",
     "title": "Arlington Catholic",
     "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/5gkfS9Td6I5lJKWnT4Ifl9_w1500h1000.png",

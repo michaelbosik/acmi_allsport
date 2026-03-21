@@ -104,15 +104,16 @@
         },
       };
 
-      const score_data = structuredClone(BASE_SCORE_DATA);
+      let score_data = structuredClone(BASE_SCORE_DATA);
+      let lastTimerState = true;
 
       datastream = context.utils.createDataStream(
         "2RyUH29htuuAGDajfq2fkD",
         (status, payload) => {
           switch (status) {
             case "message":
-              console.log("Received score data: ", status, payload);
-              score_data = parse_line(payload.payload);
+              console.log("Received score data: ", payload.payload.line);
+              parse_line(payload.payload.line, score_data);
               updateUI(score_data);
               break;
             case "connecting":
@@ -129,44 +130,39 @@
         },
       );
 
-      function parse_line(line) {
+      function parse_line(line, target) {
         let selected_sport = "hockey"; //get from control node
 
-        if (line.length < 26) {
+        line = line.replace(/^b'|'$/g, "");
+        line = line.replace(/[\x00-\x1F\x7F]/g, "");
+        line = line.replace(/\n$/, "");
+
+        if (line.length != 50) {
           // console.log(`Line length: ${line.length}. Expected at least ${Math.max(...Object.values(indexes).map(([_, end]) => end))} characters.`);
           return score_data;
         }
 
-        //   line = line.replace(/^b'|'$/g, '');
-        //   line = line.replace(/[\x00-\x1F\x7F]/g, '');
-        //   line = line.replace(/\n$/, '');
-
         const indexes = PARSING_INDEXES_5000[selected_sport];
-        const parsed_data = structuredClone(BASE_SCORE_DATA);
-
-        let lastTimerState = parsed_data.game_timer.timer_stopped;
 
         // TODO - only change timer(s) via timer_stopped value update in parsed_data
         function handleTimer(parsed_data) {
-          const stopped = Boolean(parsed_data.game_timer.timer_stopped);
+          const stopped = parsed_data.game_timer.timer_stopped;
 
-          if (lastTimerState && !stopped) {
-            // Transition: stopped → running
-            startTimerFrom(
-              parsed_data.game_timer.minutes,
-              parsed_data.game_timer.seconds,
-              parsed_data.game_timer.milliseconds,
-            );
-          }
-
-          if (!lastTimerState && stopped) {
-            // Transition: running → stopped
-            stopTimer();
-            resetTimerTo(
-              parsed_data.game_timer.minutes,
-              parsed_data.game_timer.seconds,
-              parsed_data.game_timer.milliseconds,
-            );
+          if (lastTimerState !== stopped) {
+            if (!stopped) {
+              startTimerFrom(
+                parsed_data.game_timer.minutes,
+                parsed_data.game_timer.seconds,
+                parsed_data.game_timer.milliseconds,
+              );
+            } else {
+              stopTimer();
+              resetTimerTo(
+                parsed_data.game_timer.minutes,
+                parsed_data.game_timer.seconds,
+                parsed_data.game_timer.milliseconds,
+              );
+            }
           }
 
           lastTimerState = stopped;
@@ -200,30 +196,27 @@
           for (const key in indexObj) {
             const value = indexObj[key];
 
-            // If value is an index pair
             if (Array.isArray(value)) {
               const [start, end] = value;
 
-              // Ignore [0,0]
               if (start === 0 && end === 0) continue;
 
-              const raw = line.slice(start, end).trim();
+              const raw = line.slice(start, end);
 
-              targetObj[key] = checkSpecial(key, raw);
-            }
+              if (!raw) continue;
 
-            // If nested object
-            else if (typeof value === "object" && value !== null) {
+              targetObj[key] = checkSpecial(key, raw.trim());
+            } else if (typeof value === "object") {
               if (!targetObj[key]) targetObj[key] = {};
               applyIndexes(value, targetObj[key]);
             }
           }
         }
 
-        applyIndexes(indexes, parsed_data);
+        applyIndexes(indexes, target);
         // handleTimer(parsed_data)
 
-        return parsed_data;
+        return target;
       }
 
       function updateUI(payload) {
@@ -275,7 +268,6 @@
               CONTROLNODES.score_bug["reset_seconds"],
             );
 
-            // TODO MANUAL SCORING IS 1 DIGIT OFF
             score_data["score_home"] = CONTROLNODES.score_bug["score_home"];
             score_data["score_away"] = CONTROLNODES.score_bug["score_away"];
 
@@ -384,6 +376,7 @@
             switch (power_play) {
               case "power_play_none":
                 POWERPLAY.setVisibility("false");
+                break;
               default:
                 POWERPLAY.setPositionX(
                   score_bug_style["events"][power_play]["position"]["x"],
@@ -392,6 +385,7 @@
                   score_bug_style["events"][power_play]["position"]["y"],
                 );
                 POWERPLAY.setVisibility("true");
+                break;
             }
           }
 
@@ -432,25 +426,26 @@
               (s) => s.id === CONTROLNODES.alerts["alert_selection"],
             );
 
+          const title_home_override =
+            CONTROLNODES.alerts["title_home_override"];
+
           const title_away_override =
             CONTROLNODES.alerts["title_away_override"];
 
+          if (title_home_override != "") {
+            home_team["title"] = title_home_override;
+          } else {
+            home_team["title"] = CONTROLNODES.game_info["home_team"];
+          }
+
           if (title_away_override != "") {
             away_team["title"] = title_away_override;
-          } else if (/\s/g.test(away_team["title"])) {
-            away_team["title"] =
-              away_team["title"].substring(0, 1) +
-              "." +
-              away_team["title"].substring(
-                away_team["title"].indexOf(" "),
-                away_team["title"].length,
-              );
           } else {
-            away_team["title"] = CONTROLNODES.game_info["Opponent"];
+            away_team["title"] = CONTROLNODES.game_info["away_team"];
           }
 
           if (CONTROLNODES.alerts["show_scores"]) {
-            let score_text = `Arlington: ${score_data["score_home"]}  vs   ${away_team["title"]}: ${score_data["score_away"]}`;
+            let score_text = `${home_team["title"]}: ${score_data["score_home"]}  vs   ${away_team["title"]}: ${score_data["score_away"]}`;
             ALERTS.findWidget("show_scores").forEach((w) => {
               w.setPayload({
                 text: score_text,
@@ -484,7 +479,7 @@
                 group.setVisibility(true);
                 switch (a) {
                   case "timeout_home":
-                    setText("TIMEOUT Arlington");
+                    setText(`TIMEOUT ${home_team["title"]}`);
                     break;
                   case "timeout_away":
                     setText(`TIMEOUT ${away_team["title"]}`);
@@ -513,10 +508,13 @@
                 solidColor: CONTROLNODES.game_info["color_secondary"],
               },
             },
+            title_home: { text: home_team["title"] },
             title_away: { text: away_team["title"] },
+            abbr_home: { text: home_team["abbreviation"] },
             abbr_away: { text: away_team["abbreviation"] },
             score_away: { text: score_data["score_away"] },
             score_home: { text: score_data["score_home"] },
+            icon_home: { image: home_team["icon"] },
             icon_away: { image: away_team["icon"] },
           };
 
@@ -542,13 +540,17 @@
           });
         }
 
-        const away_team = GAMEINFO.getModel()
-          .find((i) => i.id === "Opponent")
+        const home_team = GAMEINFO.getModel()
+          .find((i) => i.id === "home_team")
           ["selections"].find(
-            (t) => t.id === CONTROLNODES.game_info["Opponent"],
+            (t) => t.id === CONTROLNODES.game_info["home_team"],
           );
 
-        console.log(payload);
+        const away_team = GAMEINFO.getModel()
+          .find((i) => i.id === "away_team")
+          ["selections"].find(
+            (t) => t.id === CONTROLNODES.game_info["away_team"],
+          );
 
         updateThumbnail();
         updateScoreBug();
@@ -563,7 +565,7 @@
         });
       });
 
-      updateUI();
+      updateUI(score_data);
     },
     close: function (comp, context) {
       console.log("Close Composition script " + comp.name);

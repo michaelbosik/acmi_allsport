@@ -156,37 +156,37 @@ def send_to_singular(parsed_data):
     print(f"Data sent to Singular Live DSM successfully. Status code: {response.status_code}")
 
 # Function to parse a line of serial data based on the expected format for the selected sport and update the scoreData dictionary accordingly
-# def parse_line(selected_sport, line, scoreData):
-#     # print(f"Raw line: '{line}'")
+def parse_line(selected_sport, line, scoreData):
+    # print(f"Raw line: '{line}'")
 
-#     line = line.strip("b'").strip("'")
-#     line = re.sub(r"[\x00-\x1F\x7F]", "", line)
-#     line = line.rstrip("\n")
+    line = line.strip("b'").strip("'")
+    line = re.sub(r"[\x00-\x1F\x7F]", "", line)
+    line = line.rstrip("\n")
 
-#     indexes = PARSING_INDEXES_5000[selected_sport]
-#     # indexes = PARSING_INDEXES_CG[selected_sport]
+    indexes = PARSING_INDEXES_5000[selected_sport]
+    # indexes = PARSING_INDEXES_CG[selected_sport]
 
-#     parsed_data = {}
+    parsed_data = {}
 
-#     if len(line) < 26:
-#         # print(f"Line length: {len(line)}. Expected at least {max(end for _, end in indexes.values())} characters.")
-#         return scoreData
+    if len(line) < 26:
+        # print(f"Line length: {len(line)}. Expected at least {max(end for _, end in indexes.values())} characters.")
+        return scoreData
 
-#     try:
-#         for field, (start, end) in indexes.items():
-#             raw_value = line[start:end].strip()
-#             # print(f"Extracted raw value for {field}: '{raw_value}'")
+    try:
+        for field, (start, end) in indexes.items():
+            raw_value = line[start:end].strip()
+            # print(f"Extracted raw value for {field}: '{raw_value}'")
 
-#             if field == "timer_stopped":
-#                 parsed_data[field] = (raw_value == "s")
-#             elif raw_value:
-#                 parsed_data[field] = int(raw_value)
-#             else:
-#                 parsed_data[field] = 0
-#     except Exception as e:  
-#         print(f"Error parsing line: {e}. Line content: '{line}'")
+            if field == "timer_stopped":
+                parsed_data[field] = (raw_value == "s")
+            elif raw_value:
+                parsed_data[field] = int(raw_value)
+            else:
+                parsed_data[field] = 0
+    except Exception as e:  
+        print(f"Error parsing line: {e}. Line content: '{line}'")
 
-#     return parsed_data
+    return parsed_data
 
 def local_read(selected_sport):
     scoreData = {
