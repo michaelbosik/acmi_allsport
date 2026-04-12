@@ -22,7 +22,7 @@
           minutes: 0,
           seconds: 0,
           milliseconds: 0,
-          timer_stopped: true,
+          isRunning: true,
         },
         score_home: 0,
         score_away: 0,
@@ -40,14 +40,16 @@
           },
         },
       };
-
+      // 012345678901234567890123456789012345678901234567890123456789
+      // 77:10    6 5   4 33 54 0:4636 0:5985 1:1984 1:32CA
+      // 77:03  s 6 5   4 33 54 0:3936 0:5285 1:1384 1:2516
       const PARSING_INDEXES_5000 = {
         basketball: {
           game_timer: {
             minutes: [0, 2],
             seconds: [3, 5],
             milliseconds: [0, 0],
-            timer_stopped: [7, 8],
+            isRunning: [7, 8],
           },
           score_home: [13, 15],
           score_away: [16, 18],
@@ -60,7 +62,7 @@
             minutes: [0, 2],
             seconds: [3, 5],
             milliseconds: [6, 7],
-            timer_stopped: [7, 8],
+            isRunning: [7, 8],
           },
           score_home: [8, 10],
           score_away: [10, 12],
@@ -70,33 +72,33 @@
           penalties: {
             home: {
               penalty_1: {
-                player: [0, 0],
+                player: [20, 22],
                 timer: {
                   minutes: [22, 24],
                   seconds: [25, 27],
                 },
               },
               penalty_2: {
-                player: [0, 0],
+                player: [27, 29],
                 timer: {
-                  minutes: [0, 0],
-                  seconds: [0, 0],
+                  minutes: [29, 31],
+                  seconds: [32, 34],
                 },
               },
             },
             away: {
               penalty_1: {
-                player: [0, 0],
+                player: [34, 36],
                 timer: {
                   minutes: [36, 38],
                   seconds: [39, 41],
                 },
               },
               penalty_2: {
-                player: [0, 0],
+                player: [41, 43],
                 timer: {
-                  minutes: [0, 0],
-                  seconds: [0, 0],
+                  minutes: [43, 45],
+                  seconds: [46, 48],
                 },
               },
             },
@@ -105,8 +107,6 @@
       };
 
       let score_data = structuredClone(BASE_SCORE_DATA);
-      let lastTimerState = true;
-
       datastream = context.utils.createDataStream(
         "2RyUH29htuuAGDajfq2fkD",
         (status, payload) => {
@@ -131,47 +131,47 @@
       );
 
       function parse_line(line, target) {
-        let selected_sport = "hockey"; //get from control node
-
-        line = line.replace(/^b'|'$/g, "");
-        line = line.replace(/[\x00-\x1F\x7F]/g, "");
-        line = line.replace(/\n$/, "");
-
-        if (line.length != 50) {
-          // console.log(`Line length: ${line.length}. Expected at least ${Math.max(...Object.values(indexes).map(([_, end]) => end))} characters.`);
-          return score_data;
+        function timeDigits(line) {
+          return line.substring(0, line.indexOf(":")).length >= 2
+            ? false
+            : true;
         }
 
-        const indexes = PARSING_INDEXES_5000[selected_sport];
+        let selected_sport = "hockey"; //get from control node
 
-        // TODO - only change timer(s) via timer_stopped value update in parsed_data
-        function handleTimer(parsed_data) {
-          const stopped = parsed_data.game_timer.timer_stopped;
+        function handleTimer() {
 
-          if (lastTimerState !== stopped) {
-            if (!stopped) {
-              startTimerFrom(
-                parsed_data.game_timer.minutes,
-                parsed_data.game_timer.seconds,
-                parsed_data.game_timer.milliseconds,
-              );
+          const isRunning = score_data.game_timer.isRunning;
+          let lastTimerState =
+            CONTROLNODES.score_bug["game_timer"]["isRunning"];
+
+          if (lastTimerState !== isRunning) {
+            if (isRunning) {
+              SCOREBUG.findWidget("game_timer").forEach((e) => {
+                e.setPayload({
+                  timeControl: CONTROLNODES.score_bug["game_timer"],
+                  beginMinutes: score_data.game_timer.minutes,
+                  beginSeconds: score_data.game_timer.seconds,
+                });
+                CONTROLNODES.score_bug["game_timer"]["isRunning"] = true;
+              });
             } else {
-              stopTimer();
-              resetTimerTo(
-                parsed_data.game_timer.minutes,
-                parsed_data.game_timer.seconds,
-                parsed_data.game_timer.milliseconds,
-              );
+              SCOREBUG.findWidget("game_timer").forEach((e) => {
+                CONTROLNODES.score_bug["game_timer"]["isRunning"] = false;
+                e.setPayload({
+                  timeControl: CONTROLNODES.score_bug["game_timer"],
+                  beginMinutes: score_data.game_timer.minutes,
+                  beginSeconds: score_data.game_timer.seconds,
+                });
+              });
             }
           }
-
-          lastTimerState = stopped;
         }
 
         function checkSpecial(key, raw) {
           switch (key) {
-            case "timer_stopped":
-              return raw === "s";
+            case "isRunning":
+              return raw !== "s";
             case "game_period":
               switch (raw) {
                 case "1":
@@ -213,8 +213,13 @@
           }
         }
 
-        applyIndexes(indexes, target);
-        // handleTimer(parsed_data)
+        if (line.substring(0, line.indexOf(":")).length < 2) {
+          line = " " + line;
+        }
+
+        console.log("Handling line: ", line);
+        applyIndexes(PARSING_INDEXES_5000[selected_sport], target);
+        handleTimer();
 
         return target;
       }

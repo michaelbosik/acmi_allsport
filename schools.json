@@ -12,6 +12,12 @@
     "abbreviation": "APD"
   },
   {
+    "id": "Arlington",
+    "title": "Arlington",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/6KY6DOmqZVIxrDvM282Ggb_w1080h1080.png",
+    "abbreviation": "AHS"
+  },
+  {
     "id": "Arlington Catholic",
     "title": "Arlington Catholic",
     "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/5gkfS9Td6I5lJKWnT4Ifl9_w1500h1000.png",
@@ -46,6 +52,12 @@
     "title": "Catholic Memorial",
     "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/41j6NiTTz0CtCwJShKGuBo_w1000h1000.png",
     "abbreviation": "CMH"
+  },
+  {
+    "id": "Central Catholic",
+    "title": "Central Catholic",
+    "icon": "https://image.singular.live/0644484c4304a0dfb738a88662b94063/images/4ct1lKKahmQbUslrzKbnil_w1700h882.png",
+    "abbreviation": "CCH"
   },
   {
     "id": "Gloucester",
